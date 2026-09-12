@@ -1,6 +1,6 @@
 # CMake build output
-cmake_gcc/build/
-Binaries/
+Software/cmake_gcc/build/
+Software/Binaries/
 
 # Compiled firmware artifacts
 *.o
@@ -13,19 +13,20 @@ Binaries/
 *.map
 
 # Local Silicon Labs SDK
-simplicity_sdk_2026.6.1/
+Software/simplicity_sdk_2026.6.1/
 
 # Local Silicon Labs / IDE state
-.projectlinkstore
-.silabsExtContext
+Software/.projectlinkstore
+Software/.silabsExtContext
 
 # Generated Silicon Labs metadata
-autogen/.slc_state/
-autogen/sbom/
-autogen/AGENTS-SLAB.md
+Software/autogen/.slc_state/
+Software/autogen/sbom/
+Software/autogen/AGENTS-SLAB.md
 
 # AI agent instructions
 AGENTS.md
+Software/AGENTS.md
 
 # Unused image directory
 image/
@@ -33,3 +34,5 @@ image/
 # OS junk
 .DS_Store
 Thumbs.db
+
+Hardware/History/**
