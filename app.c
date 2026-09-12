@@ -35,13 +35,14 @@
 #include "sl_sleeptimer.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "gatt_db.h"
 
 // The advertising set handle allocated from Bluetooth stack.
 static uint8_t advertising_set_handle = 0xff;
 static sl_sleeptimer_timer_handle_t servo_timer;
 static volatile bool servo_timer_expired = false;
-static uint16_t sweep_angle = 0;
-static int8_t sweep_direction = 1;
+// static uint16_t sweep_angle = 0;
+// static int8_t sweep_direction = 1;
 
 static void servo_timer_callback(sl_sleeptimer_timer_handle_t *handle, void *data)
 {
@@ -50,28 +51,28 @@ static void servo_timer_callback(sl_sleeptimer_timer_handle_t *handle, void *dat
     servo_timer_expired = true;
 }
 
-static void servo_sweep_step(void) {
-    servo_set_angle(0, sweep_angle);
-    servo_set_angle(1, sweep_angle);
-	// sweep 0 -> 180
-	if (sweep_direction > 0) {
-		if (sweep_angle < 180) {
-			sweep_angle++;
-		}
-		else {
-			sweep_direction = -1;
-		}
-	}
-	// sweep 180 -> 0
-	else {
-		if (sweep_angle > 0) {
-			sweep_angle--;
-		}
-		else {
-			sweep_direction = 1;
-		}
-	}
-}
+// static void servo_sweep_step(void) {
+//     servo_set_angle(0, sweep_angle);
+//     servo_set_angle(1, sweep_angle);
+// 	// sweep 0 -> 180
+// 	if (sweep_direction > 0) {
+// 		if (sweep_angle < 180) {
+// 			sweep_angle++;
+// 		}
+// 		else {
+// 			sweep_direction = -1;
+// 		}
+// 	}
+// 	// sweep 180 -> 0
+// 	else {
+// 		if (sweep_angle > 0) {
+// 			sweep_angle--;
+// 		}
+// 		else {
+// 			sweep_direction = 1;
+// 		}
+// 	}
+// }
 
 // Application Init.
 void app_init(void)
@@ -99,7 +100,7 @@ void app_process_action(void)
 
 	if (servo_timer_expired) {
 		servo_timer_expired = false;
-		servo_sweep_step();
+		servo_ramp_step();
 	}
 
   if (app_is_process_required()) {
@@ -171,6 +172,31 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     ///////////////////////////////////////////////////////////////////////////
     // Add additional event handlers here as your application requires!      //
     ///////////////////////////////////////////////////////////////////////////
+
+    case sl_bt_evt_gatt_server_attribute_value_id: {
+		uint16_t att = evt->data.evt_gatt_server_attribute_value.attribute;
+		uint8_t len = evt->data.evt_gatt_server_attribute_value.value.len;
+
+		if (len != 1) {
+			break;
+		}
+
+		uint8_t angle = evt->data.evt_gatt_server_attribute_value.value.data[0];
+
+		// unsigned 8 bit int 0-255
+		if (angle > 180) {
+			break;
+		}
+
+		if (att == gattdb_servo_a) {
+			servo_set_target_angle(SERVO_A, angle);
+		}
+		if (att == gattdb_servo_b) {
+			servo_set_target_angle(SERVO_B, angle);
+		}
+
+		break;
+    }
 
     // -------------------------------
     // Default event handler.

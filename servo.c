@@ -6,17 +6,20 @@
 #include "em_gpio.h"
 #include "em_timer.h"
 #include "sl_power_manager.h"
+#include <stdint.h>
 
 #define SERVO_MIN_US 500
 #define SERVO_CENTER_US 1500
 #define SERVO_MAX_US 2500
 #define SERVO_PERIOD_US 20000
+#define SERVO_RAMP_STEP_DEG 1
 
 static uint32_t timer_frequency_hz;
+static uint8_t current_angle[SERVO_COUNT] = {90, 90};
+static uint8_t target_angle[SERVO_COUNT]  = {90, 90};
 
 
-void servo_init(void)
-{
+void servo_init(void) {
     // 1. Enable/configure TIMER0
     // 2. Configure CC0 and CC1 for PWM
     // 3. Route CC0 -> PB3
@@ -52,14 +55,14 @@ void servo_init(void)
     GPIO->TIMERROUTE[0].CC1ROUTE = (gpioPortB << _GPIO_TIMER_CC1ROUTE_PORT_SHIFT) | (4 << _GPIO_TIMER_CC1ROUTE_PIN_SHIFT);
     GPIO->TIMERROUTE[0].ROUTEEN = GPIO_TIMER_ROUTEEN_CC0PEN | GPIO_TIMER_ROUTEEN_CC1PEN;
 
-    servo_set_us(0, 2400);
-    servo_set_us(1, 2400);
+    servo_set_us(SERVO_A, SERVO_CENTER_US);
+    servo_set_us(SERVO_B, SERVO_CENTER_US);
 
     TIMER_Enable(TIMER0, true);
 
 }
 
-void servo_set_us(uint8_t servo, uint16_t pulse_us) {
+void servo_set_us(servo_t servo, uint16_t pulse_us) {
     if (pulse_us < SERVO_MIN_US) {
         pulse_us = SERVO_MIN_US;
     }
@@ -77,26 +80,57 @@ void servo_set_us(uint8_t servo, uint16_t pulse_us) {
     }
 }
 
-void servo_set_angle(uint8_t servo, uint16_t angle_deg) {
+void servo_set_angle(servo_t servo, uint8_t angle_deg) {
     // clamp angle (unsigned) within 180 full sweep
     if (angle_deg > 180) {
         angle_deg = 180;
     }
-
-    // ratio of requested angle versus full sweep
-    float angle_ratio = angle_deg / 180.0f;
     // full sweep in terms of PWM range
-    float pulse_range = SERVO_MAX_US - SERVO_MIN_US;
-    // offset from 0 degrees
-    float pulse_offset = angle_ratio * pulse_range;
-
+    uint16_t pulse_range = SERVO_MAX_US - SERVO_MIN_US;
+    // angle scaled to us range
+    uint32_t pulse_scaled = (uint32_t)angle_deg * pulse_range;
+    // ratio of requested angle versus full sweep
+    uint16_t pulse_offset = pulse_scaled / 180;
+    // offset the pulse width from the minimum pulse width
     uint16_t pulse_us = SERVO_MIN_US + pulse_offset;
+
     servo_set_us(servo, pulse_us);
+}
+
+void servo_set_target_angle(servo_t servo, uint8_t angle_deg) {
+	if (angle_deg > 180) {
+		angle_deg = 180;
+	}
+	if (servo < SERVO_COUNT) {
+		target_angle[servo] = angle_deg;
+	}
+}
+
+void servo_ramp_step(void) {
+	for (servo_t i = 0; i < SERVO_COUNT; i++) {
+		// nothing to do
+		if (current_angle[i] == target_angle[i]) {
+			continue;
+		}
+		// move up to taget angle
+		if (current_angle[i] < target_angle[i]) {
+			uint8_t remaining = target_angle[i] - current_angle[i];
+			uint8_t step = (remaining < SERVO_RAMP_STEP_DEG) ? remaining : SERVO_RAMP_STEP_DEG;
+			current_angle[i] += step;
+		}
+		// move down to target angle
+		else {
+			uint8_t remaining = current_angle[i] - target_angle[i];
+			uint8_t step = (remaining < SERVO_RAMP_STEP_DEG) ? remaining : SERVO_RAMP_STEP_DEG;
+			current_angle[i] -= step;
+		}
+		servo_set_angle(i, current_angle[i]);
+	}
 }
 
 void servo_disable(void) {
     TIMER_Enable(TIMER0, false);
-
     GPIO_PinOutClear(gpioPortB, 3);
     GPIO_PinOutClear(gpioPortB, 4);
+    sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
 }
