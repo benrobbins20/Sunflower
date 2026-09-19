@@ -1,0 +1,34 @@
+Position,Group,Display Name,Designator,Electrical Type,Description,Side
+1,Power,VDD,13,Power,Power supply,Top
+2,Control,RESETn,30,Input,Reset,Left
+3,Port B,PB00,6,I/O,GPIO,Right
+4,Port B,PB01,5,I/O,GPIO,Right
+5,Port B,PB02,4,I/O,GPIO,Right
+6,Port B,PB03,3,I/O,GPIO,Right
+7,Port B,PB04,2,I/O,GPIO,Right
+8,Port A,PA00,7,I/O,GPIO,Right
+9,Port A,PA01,8,I/O,GPIO,Right
+10,Port A,PA02,9,I/O,GPIO,Right
+11,Port A,PA03,10,I/O,GPIO,Right
+12,Port A,PA04,11,I/O,GPIO,Right
+13,Port A,PA05,14,I/O,GPIO,Right
+14,Port A,PA06,15,I/O,GPIO,Right
+15,Port A,PA07,16,I/O,GPIO,Right
+16,Port A,PA08,17,I/O,GPIO,Right
+17,Port C,PC00,22,I/O,GPIO,Right
+18,Port C,PC01,23,I/O,GPIO,Right
+19,Port C,PC02,24,I/O,GPIO,Right
+20,Port C,PC03,25,I/O,GPIO,Right
+21,Port C,PC04,26,I/O,GPIO,Right
+22,Port C,PC05,27,I/O,GPIO,Right
+23,Port C,PC06,28,I/O,GPIO,Right
+24,Port C,PC07,29,I/O,GPIO,Right
+25,Port D,PD02,19,I/O,GPIO,Right
+26,Port D,PD03,18,I/O,GPIO,Right
+27,NC,NC,21,Passive,Do not connect,Right
+28,Power,GND,1,Power,Ground,Bottom
+29,Power,GND,12,Power,Ground,Bottom
+30,Power,GND,20,Power,Ground,Bottom
+31,Power,GND,31,Power,Ground,Bottom
+,,,,,,
+,,,,,,

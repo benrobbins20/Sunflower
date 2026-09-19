@@ -35,4 +35,6 @@ image/
 .DS_Store
 Thumbs.db
 
-Hardware/History/**
+Hardware/History/
+Hardware/__Previews/
+Hardware/**/*.IntLib
