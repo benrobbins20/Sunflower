@@ -1,0 +1,22 @@
+Position,Group,Display Name,Designator,Electrical Type,Description,Side
+1,GND,VSS,1,Power,Power ground for the boost charger.,Left
+2,BOOST,VIN_DC,2,Input,DC voltage input from energy harvesting source.,Left
+3,BOOST,VOC_SAMP,3,Input,Sampling pin for MPPT network.,Left
+4,BOOST,VREF_SAMP,4,Input,MPPT sample-and-hold reference voltage pin.,Left
+5,CONTROL,EN,5,Input,Active-low enable input for the IC.,Left
+6,BUCK,VOUT_EN,6,Input,Active-high enable input for the buck converter.,Bottom
+7,BATTERY,VBAT_OV,7,Input,Battery overvoltage threshold programming input.,Bottom
+8,BATTERY,VRDIV,8,Output,Bias voltage output for resistor divider networks.,Bottom
+9,BATTERY,NC,9,Passive,No connect; connect to ground using the IC PowerPAD.,Bottom
+10,BATTERY,OK_HYST,10,Input,VBAT_OK hysteresis threshold programming input.,Bottom
+11,BATTERY,OK_PROG,11,Input,VBAT_OK threshold programming input.,Right
+12,BUCK,VOUT_SET,12,Input,VOUT regulation set-point programming input.,Right
+13,BATTERY,VBAT_OK,13,Output,Battery-good digital output.,Right
+14,BUCK,VOUT,14,Output,Buck converter output.,Right
+15,GND,VSS,15,Power,Power ground for buck converter and analog/signal ground.,Right
+16,BUCK,LBUCK,16,I/O,Buck converter switching-node inductor connection.,Top
+17,BATTERY,NC,17,Passive,No connect; connect to ground using the IC PowerPAD.,Top
+18,BATTERY,VBAT,18,I/O,Rechargeable storage-element connection.,Top
+19,BATTERY,VSTOR,19,Output,Boost charger output and system storage rail.,Top
+20,BOOST,LBOOST,20,I/O,Boost charger switching-node inductor connection.,Top
+21,GND,THERMAL_PAD,21,Power,Exposed PowerPAD; solder to PCB.,Bottom
