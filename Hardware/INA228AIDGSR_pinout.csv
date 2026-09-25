@@ -1,9 +1,9 @@
 Position,Group,Display Name,Designator,Electrical Type,Description,Side
-1,Address,A1,1,Input,"I2C address pin. Connect to GND, SCL, SDA, or VS.",Left
-2,Address,A0,2,Input,"I2C address pin. Connect to GND, SCL, SDA, or VS.",Left
+1,Address,A1,1,Input,"I2C address pin. Connect to GND, SCL, SDA, or VS.",Right
+2,Address,A0,2,Input,"I2C address pin. Connect to GND, SCL, SDA, or VS.",Right
 3,Digital,ALERT,3,Output,"Open-drain alert output, default state is active low.",Right
 4,Digital,SDA,4,I/O,Open-drain bidirectional I2C data.,Right
-5,Digital,SCL,5,Input,I2C clock input.,Left
+5,Digital,SCL,5,Input,I2C clock input.,Right
 6,Power,VS,6,Power,"Power supply, 2.7 V to 5.5 V.",Top
 7,Analog Input,VBUS,8,Input,Bus voltage input.,Left
 8,Analog Input,IN-,9,Input,"Negative input to the device. For high-side applications, connect to load side of sense resistor. For low-side applications, connect to ground side of sense resistor.",Left
