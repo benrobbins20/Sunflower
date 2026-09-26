@@ -1,1 +1,3 @@
-Record=TopLevelDocument|FileName=Sunflower.SchDoc|SheetNumber=1
+Record=TopLevelDocument|FileName=Mechanical.SchDoc|SheetNumber=2
+Record=NoMainPathDocument|SourceDocument=Mechanical.SchDoc|FileName=PowerSystem.SchDoc|SheetNumber=3
+Record=NoMainPathDocument|SourceDocument=Mechanical.SchDoc|FileName=Sunflower.SchDoc|SheetNumber=1

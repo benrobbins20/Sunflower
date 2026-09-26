@@ -1,0 +1,32 @@
+Position,Group,Display Name,Designator,Electrical Type,Description,Side
+1,Power,VDD,13,Power,3.3 V MCU supply,Top
+2,Sensors / ADC,PHOTO_1 / PC00,22,Input,Photodiode 1 analog input; IADC-capable GPIO,Left
+3,Sensors / ADC,PHOTO_2 / PC01,23,Input,Photodiode 2 analog input; IADC-capable GPIO,Left
+4,Sensors / ADC,PHOTO_3 / PC02,24,Input,Photodiode 3 analog input; IADC-capable GPIO,Left
+5,Sensors / ADC,PHOTO_4 / PC03,25,Input,Photodiode 4 analog input; IADC-capable GPIO,Left
+6,Sensors / ADC,VBAT_SENSE / PC04,26,Input,Battery voltage-divider analog input; IADC-capable GPIO,Left
+7,Power Status,VBAT_OK / PB00,6,Input,BQ25570 VBAT_OK digital status input,Left
+8,I2C,I2C_SDA / PC06,28,I/O,INA228 I2C0 SDA; I2C0 routable on Port C,Left
+9,I2C,I2C_SCL / PC07,29,I/O,INA228 I2C0 SCL; I2C0 routable on Port C,Left
+10,Control,RESETn,30,Input,Active-low reset; internal pull-up,Left
+11,Debug,SWCLK / PA01,8,I/O,SWD programming/debug clock; reserve for debug,Left
+12,Debug,SWDIO / PA02,9,I/O,SWD programming/debug data; reserve for debug,Left
+13,Debug,SWO / PA03,10,I/O,SWV/SWO debug trace; reserve for debug,Left
+14,Debug / Spare,PA04,11,I/O,GPIO; TDI/TRACECLK alternate function; leave spare unless needed,Left
+15,Actuator,PWM_A / PB03,3,Output,Actuator PWM A; assigned GPIO,Right
+16,Actuator,PWM_B / PB04,2,Output,Actuator PWM B; assigned GPIO,Right
+17,Actuator,MOTOR_EN / PB01,5,Output,TPS22918/load-switch enable,Right
+18,Spare GPIO,PB02,4,I/O,Spare GPIO,Right
+19,Spare GPIO,PA00,7,I/O,Spare GPIO; IADC0.VREFP alternate function,Right
+20,Spare GPIO,PA05,14,I/O,Spare GPIO,Right
+21,Spare GPIO,PA06,15,I/O,Spare GPIO,Right
+22,Spare GPIO,PA07,16,I/O,Spare GPIO,Right
+23,Spare GPIO,PA08,17,I/O,Spare GPIO,Right
+24,Spare GPIO,PC05,27,I/O,Spare GPIO; PTI_FRAME in reference design,Right
+25,Spare GPIO,PD02,19,I/O,Spare GPIO,Right
+26,Spare GPIO,PD03,18,I/O,Spare GPIO,Right
+27,NC,NC,21,Passive,Do not connect,Right
+28,Power,GND,1,Power,Ground,Bottom
+29,Power,GND,12,Power,Ground,Bottom
+30,Power,GND,20,Power,Ground,Bottom
+31,Power,GND,31,Power,Ground,Bottom

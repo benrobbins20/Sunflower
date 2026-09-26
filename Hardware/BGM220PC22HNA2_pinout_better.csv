@@ -1,0 +1,32 @@
+Position,Group,Display Name,Designator,Electrical Type,Description,Side
+1,Power,VDD,13,Power,Power supply,Top
+2,Control,RESETn,30,Input,Active-low reset; internal pull-up; external source should only pull low,Left
+3,Debug / GPIO,PA01,8,I/O,GPIO; SWCLK debug clock,Left
+4,Debug / GPIO,PA02,9,I/O,GPIO; SWDIO debug data,Left
+5,Debug / GPIO,PA03,10,I/O,GPIO; SWV / TDO / TRACE data,Left
+6,Debug / GPIO,PA04,11,I/O,GPIO; TDI / TRACECLK,Left
+7,Actuator / GPIO,PB03,3,I/O,GPIO; GPIO.EM4WU4; suggested Actuator PWM 1,Right
+8,Actuator / GPIO,PB04,2,I/O,GPIO; suggested Actuator PWM 2,Right
+9,GPIO,PB02,4,I/O,GPIO,Right
+10,GPIO,PB01,5,I/O,GPIO; GPIO.EM4WU3,Right
+11,GPIO,PB00,6,I/O,GPIO; IADC0.VREFN available,Right
+12,GPIO,PA00,7,I/O,GPIO; IADC0.VREFP available,Right
+13,GPIO,PA05,14,I/O,GPIO; GPIO.EM4WU0,Right
+14,GPIO,PA06,15,I/O,GPIO,Right
+15,GPIO,PA07,16,I/O,GPIO,Right
+16,GPIO,PA08,17,I/O,GPIO,Right
+17,GPIO,PC00,22,I/O,GPIO; GPIO.EM4WU6 / THMSW_EN,Right
+18,GPIO,PC01,23,I/O,GPIO,Right
+19,GPIO,PC02,24,I/O,GPIO,Right
+20,GPIO,PC03,25,I/O,GPIO,Right
+21,GPIO,PC04,26,I/O,GPIO; PTI_DATA in reference design,Right
+22,GPIO,PC05,27,I/O,GPIO; GPIO.EM4WU7; PTI_FRAME in reference design,Right
+23,GPIO,PC06,28,I/O,GPIO,Right
+24,GPIO,PC07,29,I/O,GPIO; GPIO.EM4WU8,Right
+25,GPIO,PD02,19,I/O,GPIO; GPIO.EM4WU9,Right
+26,GPIO,PD03,18,I/O,GPIO,Right
+27,NC,NC,21,Passive,Do not connect,Right
+28,Power,GND,1,Power,Ground,Bottom
+29,Power,GND,12,Power,Ground,Bottom
+30,Power,GND,20,Power,Ground,Bottom
+31,Power,GND,31,Power,Ground,Bottom
