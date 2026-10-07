@@ -67,7 +67,7 @@ GenerateClassCluster=0
 DocumentUniqueId=GEGTBPYJ
 
 [Document2]
-DocumentPath=SunflowerPCB.PcbLib
+DocumentPath=..\PartsLibrary\SunflowerPCB.PcbLib
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
@@ -81,10 +81,10 @@ ClassGenCCAutoRoomEnabled=0
 ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
-DocumentUniqueId=PQBDXSYV
+DocumentUniqueId=
 
 [Document3]
-DocumentPath=SunflowerSCH.SchLib
+DocumentPath=..\PartsLibrary\SunflowerSCH.SchLib
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
@@ -98,26 +98,9 @@ ClassGenCCAutoRoomEnabled=0
 ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
-DocumentUniqueId=BYBNFQGL
+DocumentUniqueId=
 
 [Document4]
-DocumentPath=..\..\..\..\..\Downloads\ul_INA228AIDGSR\Altium\INA228AIDGSR\Sunflower.PcbDoc
-AnnotationEnabled=1
-AnnotateStartValue=1
-AnnotationIndexControlEnabled=0
-AnnotateSuffix=
-AnnotateScope=All
-AnnotateOrder=-1
-DoLibraryUpdate=1
-DoDatabaseUpdate=1
-ClassGenCCAutoEnabled=1
-ClassGenCCAutoRoomEnabled=0
-ClassGenNCAutoScope=None
-DItemRevisionGUID=
-GenerateClassCluster=0
-DocumentUniqueId=QRHBKIBC
-
-[Document5]
 DocumentPath=Mechanical.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -134,7 +117,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=WODWQUFR
 
-[Document6]
+[Document5]
 DocumentPath=PowerSystem.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
