@@ -27,14 +27,21 @@ Software/autogen/AGENTS-SLAB.md
 # AI agent instructions
 AGENTS.md
 Software/AGENTS.md
+.codex/
 
-# Unused image directory
+# Unused image directories
 image/
+Software/image/
+
+# Altium generated/history files
+Hardware/**/History/
+Hardware/**/__Previews/
+Hardware/**/Project\ Logs\ for\ */
+Hardware/**/*.IntLib
+
+# Altium generated library outputs
+Hardware/PartsLibrary/Project\ Outputs\ for\ */
 
 # OS junk
 .DS_Store
 Thumbs.db
-
-Hardware/History/
-Hardware/__Previews/
-Hardware/**/*.IntLib
