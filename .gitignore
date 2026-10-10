@@ -45,3 +45,5 @@ Hardware/PartsLibrary/Project\ Outputs\ for\ */
 # OS junk
 .DS_Store
 Thumbs.db
+
+Software/.vscode/
