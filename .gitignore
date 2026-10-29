@@ -47,3 +47,4 @@ Hardware/PartsLibrary/Project\ Outputs\ for\ */
 Thumbs.db
 
 Software/.vscode/
+*.code-workspace
