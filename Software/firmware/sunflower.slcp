@@ -1,6 +1,6 @@
 # Editable SLC recipe. Add application files/components here before regenerating.
-project_name: series2_starter
-label: ECEN 5833 Series 2 Firmware Starter
+project_name: sunflower
+label: Sunflower Solar Tracker Firmware
 description: A kit display/breathing PWM demo and periodic workload for comparing awake, EM1 and EM2-permitted firmware.
 category: Example|Teaching
 package: platform
