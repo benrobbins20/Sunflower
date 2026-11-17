@@ -1,6 +1,6 @@
 # Editable SLC recipe. Add application files/components here before regenerating.
-project_name: series2_starter
-label: ECEN 5833 Series 2 Firmware Starter
+project_name: sunflower
+label: Sunflower Solar Tracker Firmware
 description: A kit display/breathing PWM demo and periodic workload for comparing awake, EM1 and EM2-permitted firmware.
 category: Example|Teaching
 package: platform
@@ -17,6 +17,7 @@ source:
   - path: src/workload.c
   - path: src/kit_demo.c
   - path: src/i2c_bus.c
+  - path: src/ina228.c
 # Register headers here so generation copies the authored include directory.
 include:
   - path: include
@@ -27,6 +28,7 @@ include:
       - path: kit_demo.h
       - path: cu_logo.h
       - path: i2c_bus.h
+      - path: ina228.h
       - path: board_pins.h
 
 # Radio board chooses MCU/pins/clocks; the mainboard supplies the LCD and debugger.

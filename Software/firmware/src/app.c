@@ -6,6 +6,8 @@
 #include "em_core.h"
 #include "sl_sleeptimer.h"
 #include "sl_status.h"
+#include "i2c_bus.h"
+#include "ina228.h"
 
 /* Timers post work; the main loop owns processing. Keep handles alive globally. */
 static sl_sleeptimer_timer_handle_t period_timer;
@@ -13,6 +15,9 @@ static sl_sleeptimer_timer_handle_t period_timer;
 static volatile uint32_t pending_jobs;
 static volatile bool init_failed;
 volatile app_stats_t app_stats;
+
+static int ina_rc;
+static volatile float ina_bus_mv, ina_shunt_uv, ina_current_ma, ina_power_mw, ina_temp_c;
 
 #if APP_MODE == APP_MODE_DEMO
 /* Animation uses a single pending flag; workload uses a bounded event count. */
@@ -54,6 +59,11 @@ void app_init(void)
 #endif
   /* Add project driver initialization here and check each returned status. */
   sl_status_t status = kit_demo_init();
+
+  // start INA228 
+  i2c_bus_init();
+  ina_rc = ina228_init(INA228_ADDR_DEFAULT, 0.015f, 0.5f);
+
   if (status == SL_STATUS_OK) {
     status = sl_sleeptimer_start_periodic_timer_ms(
         &period_timer, APP_PERIOD_MS, period_elapsed, NULL, 0, 0);
@@ -72,8 +82,11 @@ void app_init(void)
 
 void app_process_action(void)
 {
+  // macro for irqState: saves the interrupt on/off state
+  // 
   CORE_DECLARE_IRQ_STATE;
   bool run_job;
+
 #if APP_MODE == APP_MODE_DEMO
   bool run_breath;
 #endif
@@ -84,6 +97,7 @@ void app_process_action(void)
   if (run_job) {
     --pending_jobs;
   }
+
 #if APP_MODE == APP_MODE_DEMO
   run_breath = breath_pending;
   breath_pending = false;
@@ -105,12 +119,19 @@ void app_process_action(void)
 #endif
 
   if (run_job) {
-    /* Run outside the atomic section so interrupts can post the next event. */
-    /* Unsigned subtraction also handles a tick-counter wrap during a short job. */
     uint32_t start = sl_sleeptimer_get_tick_count();
-    uint32_t seed = app_stats.completed_jobs + 1u;
-    /* Replace this call with your sensor/control processing; keep it bounded. */
-    app_stats.last_result = workload_run(seed, APP_WORK_ITERATIONS);
+
+    /* Read the INA228 once per second (polled I2C, a few ms total). Skip if init failed. */
+    if (ina_rc == I2C_BUS_OK) {
+      ina228_read_bus_mV((float *)&ina_bus_mv);
+      ina228_read_shunt_uV((float *)&ina_shunt_uv);
+      ina228_read_current_mA((float *)&ina_current_ma);
+      ina228_read_power_mW((float *)&ina_power_mw);
+      ina228_read_die_temp_C((float *)&ina_temp_c);
+      ina228_dump_regs();
+    }
+
+    /* Debug: how long the job took (sleeptimer ticks, 32768/s) and how many have run. */
     app_stats.last_job_ticks = sl_sleeptimer_get_tick_count() - start;
     ++app_stats.completed_jobs;
   }

@@ -42,9 +42,9 @@ Create your team's repository by opening [this starter](https://github.com/cchoi
 
 Install the recommended **C/C++**, **CMake Tools**, and **Cortex-Debug** extensions. Choose **Terminal → Run Task → Starter: first setup**. It runs Python sync, locked tool installation, debugger checks, and the demo build in order. The first setup requires an internet connection.
 
-Success: doctor prints **Debugger tools found** and the build ends with **Built** followed by `build/demo/base/series2_starter.out` (Windows uses backslashes).
+Success: doctor prints **Debugger tools found** and the build ends with **Built** followed by `build/demo/base/sunflower.out` (Windows uses backslashes).
 
-Open `.local/starter.code-workspace` using **File → Open Workspace from File**. This supplies the full tool paths for F5; IntelliSense follows the latest successful build.
+Open `.local/sunflower.code-workspace` using **File → Open Workspace from File**. This supplies the full tool paths for F5; IntelliSense follows the latest successful build.
 
 First setup installs Python 3.14.8, SDK 2026.6.1, GCC 14.2.1, and the locked dependencies. Keep `pkg.lock` and `uv.lock`. After starter updates, rerun **Starter: first setup**. [Command-line setup](#command-line-setup) is also available.
 
@@ -81,7 +81,7 @@ Edit `firmware/`. Builds regenerate the SDK output when your inputs change.
 | `firmware/src/app.c` | Initialize drivers in `app_init()`; process events and project work in `app_process_action()` |
 | `firmware/src/workload.c` | Replace the synthetic work and its call in `app.c` with your application logic |
 | `firmware/include/app_config.h` | Work interval, queue limit, and demo breathing interval |
-| `firmware/series2_starter.slcp` | Board, SDK components, source files, headers, and component settings |
+| `firmware/sunflower.slcp` | Board, SDK components, source files, headers, and component settings |
 
 Add new `.c` files under `firmware/src/` and register them under `source` in the `.slcp`. Add headers under `firmware/include/` and register them in `include` → `file_list`. Keep interrupt/timer callbacks short: post events, then process them in the main loop. Add tests when you change application behavior.
 
@@ -92,7 +92,7 @@ Bluetooth, sensors, and custom PCBs need their own stack/driver/board integratio
 | Symptom | Check |
 |---|---|
 | `uv` or `slt` is not recognized | Confirm the executable is in `.local/bin`; repeat your OS's PATH command above. Fully restart VS Code for future terminals. |
-| F5 cannot find `uv`, GDB, or J-Link | Open `.local/starter.code-workspace`, install the recommended extensions, and rerun `doctor --debug`. Windows tasks expect the uv installer location shown above. |
+| F5 cannot find `uv`, GDB, or J-Link | Open `.local/sunflower.code-workspace`, install the recommended extensions, and rerun `doctor --debug`. Windows tasks expect the uv installer location shown above. |
 | Kit is not detected | Use the J-Link USB port and a data cable; close other debugger/Commander connections. Check J-Link drivers or Linux USB rules. |
 | LCD is blank / LED is off | Continue past `main`; confirm you flashed `demo` for the correct board and selected AEM/MCU. The comparison modes disable the demo. |
 | SDK headers show errors in the editor | Build the desired mode successfully, then reload VS Code. IntelliSense uses `.local/compile_commands.json`. |
@@ -119,7 +119,7 @@ To flash without a debug session, open Commander:
 uv run --locked python tools/firmware.py commander
 ```
 
-In Commander, select the connected kit, open **Flash**, select `build/demo/base/series2_starter.hex`, and flash it. Press the kit's **RESET** button to run.
+In Commander, select the connected kit, open **Flash**, select `build/demo/base/sunflower.hex`, and flash it. Press the kit's **RESET** button to run.
 
 ### Power modes and capture options
 
@@ -157,7 +157,7 @@ Compare modes at the same supply voltage, workload, duration, and logging rate. 
 
 ### Change board or module
 
-Disconnect kit power before swapping a radio board. In `firmware/series2_starter.slcp`, replace `- id: brd4186c` with the component for your **actual board and revision**. Keep `brd4002a` if using the same USB-C mainboard.
+Disconnect kit power before swapping a radio board. In `firmware/sunflower.slcp`, replace `- id: brd4186c` with the component for your **actual board and revision**. Keep `brd4002a` if using the same USB-C mainboard.
 
 | Radio board | Component ID | SDK target |
 |---|---|---|
@@ -175,7 +175,7 @@ uv run --locked python tools/firmware.py generate
 uv run --locked python tools/firmware.py build
 ```
 
-Confirm the selected part in `generated/cmake_gcc/series2_starter.cmake` before flashing. xG26/module examples need matching hardware; a successful build alone does not verify the board.
+Confirm the selected part in `generated/cmake_gcc/sunflower.cmake` before flashing. xG26/module examples need matching hardware; a successful build alone does not verify the board.
 
 ### Tests
 

@@ -6,7 +6,7 @@
 # SLC outputs are recreated from the authored firmware recipe and sources.
 /firmware/autogen/
 /firmware/config/
-/firmware/series2_starter_cmake/
+/firmware/sunflower_cmake/
 /firmware/cmake_gcc/
 /firmware/.settings/
 /firmware/.project

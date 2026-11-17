@@ -203,10 +203,10 @@ def workspace(paths, check_debug=False):
         settings["cortex-debug.JLinkGDBServerPath"] = jlink.as_posix()
     else:
         print("For F5 debugging, install SEGGER J-Link Software and rerun doctor.")
-    output = local_path(LOCAL / "starter.code-workspace")
+    output = local_path(LOCAL / "sunflower.code-workspace")
     output.write_text(json.dumps({"folders": [{"path": ".."}], "settings": settings}, indent=2) + "\n",
                       encoding="utf-8")
-    print("VS Code: open .local/starter.code-workspace")
+    print("VS Code: open .local/sunflower.code-workspace")
     if check_debug:
         if not jlink:
             raise RuntimeError("J-Link GDB Server is missing. Install SEGGER J-Link Software and rerun doctor --debug.")
@@ -239,7 +239,7 @@ def generate(paths, force=False):
         stamp.unlink(missing_ok=True)
         GENERATED.mkdir(parents=True, exist_ok=True)
         run("Generate firmware", [paths["java"], "-jar", paths["slc"], "generate",
-            ROOT / "firmware/series2_starter.slcp", "--slconf", ROOT / "user.slconf",
+            ROOT / "firmware/sunflower.slcp", "--slconf", ROOT / "user.slconf",
             "--new-project", "--destination", GENERATED, "--output-type", "cmake",
             "--toolchain", "gcc", "--replace-sources", "--replace-config", "--no-daemon", "--no-color"],
             env=environment(paths))
@@ -250,7 +250,7 @@ def generate(paths, force=False):
                     copied = GENERATED / source.relative_to(ROOT / "firmware")
                     if not copied.is_file() or copied.read_bytes() != source.read_bytes():
                         raise RuntimeError(f"Generated source differs from firmware: {copied}")
-        shutil.copyfile(ROOT / "tools/app_mode.cmake", PROJECT / "series2_starter_project.cmake")
+        shutil.copyfile(ROOT / "tools/app_mode.cmake", PROJECT / "sunflower_project.cmake")
         # Use the exact SLT-resolved paths, including when other versions are installed.
         (PROJECT / "autogen_toolchain.cmake").write_text(
             f'set(DEFAULT_TOOLCHAIN_DIR "{paths["gcc"].parent.as_posix()}/")\n'
@@ -288,8 +288,8 @@ def build(paths, mode):
     run(f"Configure {mode}", [paths["cmake"], "--fresh", "--preset", "project", "-B", destination,
         f"-DAPP_MODE={MODES[mode]}", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"], cwd=PROJECT, env=env)
     run(f"Build {mode}", [paths["cmake"], "--build", destination, "--config", "base",
-        "--target", "series2_starter", "--parallel", BUILD_JOBS], cwd=PROJECT, env=env)
-    binary = destination / "base/series2_starter.out"
+        "--target", "sunflower", "--parallel", BUILD_JOBS], cwd=PROJECT, env=env)
+    binary = destination / "base/sunflower.out"
     if not binary.is_file():
         raise RuntimeError(f"Expected executable is absent: {binary}")
     run(f"Size {mode}", [paths["gcc"].parent / executable("arm-none-eabi-size"), "-A", binary], env=env)
@@ -301,11 +301,23 @@ def build(paths, mode):
     print(f"Built {binary.relative_to(ROOT)}; HEX, BIN, S37 and MAP files are beside it.")
 
 
+def clean():
+    # Remove everything the build regenerates. Keeps .local/slt (the locked tool install),
+    # .local/logs and the machine's workspace file, so no reinstall is needed.
+    for path in (GENERATED, ROOT / "build"):
+        if path.exists():
+            shutil.rmtree(local_path(path))
+            print(f"Removed {path.relative_to(ROOT).as_posix()}/")
+    for stale in LOCAL.glob("build-*.json"):
+        stale.unlink()
+    (LOCAL / "slc-generation.json").unlink(missing_ok=True)   # forces the next build to regenerate
+
+
 def main():
     # Each CLI subcommand is also available as a VS Code task where appropriate.
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("setup", "doctor", "generate", "build", "commander"):
+    for name in ("setup", "doctor", "generate", "build", "commander", "clean"):
         command = commands.add_parser(name)
         if name == "build":
             command.add_argument("--mode", choices=MODES, default=DEFAULT_MODE)
@@ -316,6 +328,9 @@ def main():
         raise RuntimeError("Supported hosts: Windows, macOS and Linux.")
     for path in (LOCAL, LOCAL / "slt", LOCAL / "logs", GENERATED, PROJECT, ROOT / "build"):
         local_path(path)
+    if args.command == "clean":
+        clean()
+        return
     if args.command == "setup":
         setup()
     paths = tools()
