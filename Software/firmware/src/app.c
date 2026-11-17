@@ -6,6 +6,7 @@
 #include "em_core.h"
 #include "sl_sleeptimer.h"
 #include "sl_status.h"
+#include <stdio.h>
 
 /* Timers post work; the main loop owns processing. Keep handles alive globally. */
 static sl_sleeptimer_timer_handle_t period_timer;
@@ -46,6 +47,7 @@ static void period_elapsed(sl_sleeptimer_timer_handle_t *timer, void *data)
 
 void app_init(void)
 {
+  printf("Sunflower boot\r\n");
   /* Expose the compiled mode so the debugger can confirm the flashed image. */
   app_stats.mode = APP_MODE;
 #if APP_MODE == APP_MODE_EM1 || APP_MODE == APP_MODE_DEMO

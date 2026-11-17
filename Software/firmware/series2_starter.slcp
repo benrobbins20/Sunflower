@@ -42,6 +42,8 @@ component:
   - id: power_manager
   - id: sleeptimer
   - id: emlib_i2c
+  - id: iostream_rtt
+  - id: iostream_retarget_stdio
   # Named instance generates sl_pwm_led0; its pin is set below (no kit LED on the PCB).
   - id: pwm
     instance:

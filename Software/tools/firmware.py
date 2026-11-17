@@ -23,6 +23,8 @@ MODES = {"awake": 0, "em1": 1, "em2": 2, "demo": 3}
 SDK_VERSION = "2026.6.1"
 GCC_VERSION = "14.2.1"
 DEFAULT_MODE = "demo"
+# Sunflower rev2 PCB module; Commander needs the exact part to program it.
+FLASH_DEVICE = "BGM220PC22HNA"
 BUILD_JOBS = 4
 LINUX_GDB = "gdb-multiarch"
 UV_BIN_DIRECTORY = ".local/bin"
@@ -301,14 +303,41 @@ def build(paths, mode):
     print(f"Built {binary.relative_to(ROOT)}; HEX, BIN, S37 and MAP files are beside it.")
 
 
+def adapters(paths):
+    # Ask Commander which J-Links/kits are on USB; it prints one "serialNumber=..." per adapter.
+    result = subprocess.run([str(paths["commander"]), "adapter", "list"], capture_output=True,
+                            text=True, env=environment(paths))
+    return re.findall(r"^\s*serialNumber=(\d+)", result.stdout, re.MULTILINE)
+
+
+def flash(paths, mode, serialno=None):
+    # Program the hex from a previous build of this mode; Commander verifies and resets.
+    image = ROOT / "build" / mode / "base/series2_starter.hex"
+    if not image.is_file():
+        raise RuntimeError(f"No {mode} build found: {image}. Run: firmware.py build --mode {mode}")
+    if not serialno:
+        found = adapters(paths)
+        if not found:
+            raise RuntimeError("No J-Link or kit found. Check USB, then run: commander adapter list")
+        if len(found) > 1:
+            raise RuntimeError(f"Several debuggers connected ({', '.join(found)}); "
+                               "pick one with --serialno")
+        serialno = found[0]
+    print(f"Flashing {image.relative_to(ROOT)} to {FLASH_DEVICE} via J-Link {serialno}")
+    command = [paths["commander"], "flash", image, "--device", FLASH_DEVICE, "--serialno", serialno]
+    run(f"Flash {mode}", command, env=environment(paths))
+
+
 def main():
     # Each CLI subcommand is also available as a VS Code task where appropriate.
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("setup", "doctor", "generate", "build", "commander"):
+    for name in ("setup", "doctor", "generate", "build", "flash", "commander"):
         command = commands.add_parser(name)
-        if name == "build":
+        if name in ("build", "flash"):
             command.add_argument("--mode", choices=MODES, default=DEFAULT_MODE)
+        if name == "flash":
+            command.add_argument("--serialno", help="J-Link serial; omit with one debugger connected")
         elif name == "doctor":
             command.add_argument("--debug", action="store_true", help="also check J-Link and GDB tools")
     args = parser.parse_args()
@@ -335,6 +364,8 @@ def main():
         # Open the vendor GUI; flashing still requires selecting a kit and image.
         subprocess.Popen([str(paths["commander"])], cwd=paths["commander"].parent,
                          env=environment(paths))
+    elif args.command == "flash":
+        flash(paths, args.mode, args.serialno)
     else:
         build(paths, args.mode)
 
