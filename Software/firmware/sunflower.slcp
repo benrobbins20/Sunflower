@@ -1,0 +1,100 @@
+# Editable SLC recipe. Add application files/components here before regenerating.
+project_name: sunflower
+label: Sunflower Solar Tracker Firmware
+description: A kit display/breathing PWM demo and periodic workload for comparing awake, EM1 and EM2-permitted firmware.
+category: Example|Teaching
+package: platform
+quality: experimental
+# SDK version must agree with pkg.slt/pkg.lock and tools/firmware.py.
+sdk:
+  vendor: silabs
+  id: simplicity_sdk
+  version: 2026.6.1
+# Register every new .c file here; paths are relative to this firmware folder.
+source:
+  - path: src/main.c
+  - path: src/app.c
+  - path: src/workload.c
+  - path: src/kit_demo.c
+  - path: src/i2c_bus.c
+  - path: src/ina237.c
+  - path: src/servo.c
+# Register headers here so generation copies the authored include directory.
+include:
+  - path: include
+    file_list:
+      - path: app.h
+      - path: app_config.h
+      - path: workload.h
+      - path: kit_demo.h
+      - path: cu_logo.h
+      - path: i2c_bus.h
+      - path: ina237.h
+      - path: board_pins.h
+      - path: servo.h
+
+# Sunflower rev2 PCB: bare BGM220P module, no kit board support.
+# The module config supplies clocks/HFXO when no board component is selected.
+component:
+  - id: BGM220PC22HNA
+  # Core services for startup, event processing and managed idle sleep.
+  - id: sl_system
+  - id: device_init
+  - id: clock_manager
+  - id: power_manager
+  - id: sleeptimer
+  - id: emlib_i2c
+  # TIMER1 PWM for the servos (servo.c)
+  - id: emlib_timer
+  - id: iostream_rtt
+  - id: iostream_retarget_stdio
+  # Bluetooth LE peripheral (from the SDK's bt_soc_empty example, minus the
+  # central/scanner/PTI parts). Events arrive in sl_bt_on_event() in app.c,
+  # called from sl_system_process_action() in the main loop.
+  - id: bluetooth_stack
+  - id: bluetooth_feature_system
+  - id: bluetooth_feature_legacy_advertiser
+  - id: bluetooth_feature_connection_role_peripheral
+  - id: bluetooth_feature_gatt_server
+  - id: bluetooth_feature_sm
+  - id: gatt_configuration
+  - id: gatt_service_device_information_override
+  - id: app_assert
+  - id: mpu
+  # Named instance generates sl_pwm_led0; its pin is set below (no kit LED on the PCB).
+  - id: pwm
+    instance:
+      - led0
+
+# Our GATT database (services/characteristics) replaces the component's default.
+# Generation turns it into gatt_db.c / gatt_db.h (gattdb_servo_a, gattdb_servo_b).
+config_file:
+  - override:
+      component: gatt_configuration
+      file_id: gatt_configuration_file_id
+    path: config/btconf/gatt_configuration.btconf
+    directory: btconf
+
+# PWM frequency is Hz. Brightness changes are scheduled separately in app.c.
+configuration:
+  # Main stack size for the BLE stack, from bt_soc_empty.
+  - name: SL_STACK_SIZE
+    value: 2752
+  - name: SL_PWM_LED0_FREQUENCY
+    value: 100
+  # No kit LED on the PCB: route led0 PWM to spare pin PA05 (NC), away from the servo pins.
+  - name: SL_PWM_LED0_PERIPHERAL
+    value: TIMER0
+  - name: SL_PWM_LED0_PERIPHERAL_NO
+    value: 0
+  - name: SL_PWM_LED0_OUTPUT_CHANNEL
+    value: 0
+  - name: SL_PWM_LED0_OUTPUT_PORT
+    value: SL_GPIO_PORT_A
+  - name: SL_PWM_LED0_OUTPUT_PIN
+    value: 5
+  # Disable power-manager tracing and EM2 debug retention for power comparisons.
+  - name: SL_POWER_MANAGER_DEBUG
+    value: 0
+  - name: SL_POWER_MANAGER_INIT_EMU_EM2_DEBUG_ENABLE
+    value: 0
