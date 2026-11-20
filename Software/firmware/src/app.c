@@ -8,7 +8,14 @@
 #include "sl_status.h"
 #include <stdio.h>
 #include "i2c_bus.h"
-#include "ina228.h"
+#include "ina237.h"
+#include "servo.h"
+#include "board_pins.h"
+#include "em_cmu.h"
+#include "em_gpio.h"
+#include "sl_bt_api.h"
+#include "app_assert.h"
+#include "gatt_db.h"   /* generated from config/btconf/gatt_configuration.btconf */
 
 /* Timers post work; the main loop owns processing. Keep handles alive globally. */
 static sl_sleeptimer_timer_handle_t period_timer;
@@ -17,8 +24,33 @@ static volatile uint32_t pending_jobs;
 static volatile bool init_failed;
 volatile app_stats_t app_stats;
 
+/* 1 = print the INA237 readings every second over RTT. 0 = still read them into
+ * the ina_* variables below (watch them in the debugger/Commander), but don't print. */
+#define APP_LOG_INA 0
+
 static int ina_rc;
 static volatile float ina_bus_mv, ina_shunt_uv, ina_current_ma, ina_power_mw, ina_temp_c;
+
+/* Servo ramp: the 20 ms timer only sets a flag; the main loop calls servo_ramp_step(). */
+#define SERVO_RAMP_MS        20u
+#define SERVO_TEST_PERIOD_S  5u    /* test sweep: flip the target between 0 and 180 deg */
+static sl_sleeptimer_timer_handle_t servo_timer;
+static volatile bool servo_pending;
+static uint32_t servo_test_seconds;
+static uint8_t servo_test_target = 90;
+/* The test sweep runs until a phone connects; then Bluetooth owns the targets. */
+static bool servo_test_enabled = true;
+
+/* Bluetooth advertising set, allocated by the stack at boot. */
+static uint8_t advertising_set_handle = 0xff;
+
+static void servo_elapsed(sl_sleeptimer_timer_handle_t *timer, void *data)
+{
+  (void)timer;
+  (void)data;
+  /* Interrupt context: only post the work. Missed ticks coalesce into one step. */
+  servo_pending = true;
+}
 
 #if APP_MODE == APP_MODE_DEMO
 /* Animation uses a single pending flag; workload uses a bounded event count. */
@@ -62,13 +94,38 @@ void app_init(void)
   /* Add project driver initialization here and check each returned status. */
   sl_status_t status = kit_demo_init();
 
-  // start INA228 
+  // start INA237 
   i2c_bus_init();
-  ina_rc = ina228_init(INA228_ADDR_DEFAULT, 0.100f, 0.4f);  /* Sunflower PCB: 100 mOhm shunt, 0.4 A max */
+
+  /* Debug: read the ID registers directly, before the driver checks them. */
+  uint8_t raw[2] = {0, 0};
+  int id_rc = i2c_bus_read_reg(INA237_ADDR_DEFAULT, 0x3E, raw, 2);   /* MFG_ID */
+  printf("INA237 MFG_ID rc=%d raw=0x%02X%02X (expect 0x5449)\r\n", id_rc, raw[0], raw[1]);
+  raw[0] = raw[1] = 0;
+  id_rc = i2c_bus_read_reg(INA237_ADDR_DEFAULT, 0x3F, raw, 2);       /* DEVICE_ID */
+  printf("INA237 DEV_ID rc=%d raw=0x%02X%02X (expect 0x238x)\r\n", id_rc, raw[0], raw[1]);
+
+  ina_rc = ina237_init(INA237_ADDR_DEFAULT, 0.100f, 0.4f);  /* Sunflower PCB: 100 mOhm shunt, 0.4 A max */
+  /* 0 = OK; -1 NACK (wrong address / unpowered), -2 bus error, -3 timeout, -10 not an INA237. */
+  printf("INA237 init: %d\r\n", ina_rc);
+
+  /* TPS22918 load switch (LD_SW_ON, PB01) powers the servo 5 V rail: turn it on first.
+   * TODO: move into a power/load-switch driver (on/off around moves to save energy). */
+  CMU_ClockEnable(cmuClock_GPIO, true);
+  GPIO_PinModeSet(LOAD_SW_EN_PORT, LOAD_SW_EN_PIN, gpioModePushPull, 1);
+  printf("Load switch on (PB01)\r\n");
+
+  /* Servos: TIMER1 PWM on PB03/PB04, both start centred at 90 deg. */
+  servo_init();
+  printf("Servo init: 50 Hz on PB03/PB04, center 90 deg\r\n");
 
   if (status == SL_STATUS_OK) {
     status = sl_sleeptimer_start_periodic_timer_ms(
         &period_timer, APP_PERIOD_MS, period_elapsed, NULL, 0, 0);
+  }
+  if (status == SL_STATUS_OK) {
+    status = sl_sleeptimer_start_periodic_timer_ms(
+        &servo_timer, SERVO_RAMP_MS, servo_elapsed, NULL, 0, 0);
   }
 #if APP_MODE == APP_MODE_DEMO
   /* This timer changes brightness; the hardware PWM timer supplies the carrier. */
@@ -88,6 +145,7 @@ void app_process_action(void)
   // 
   CORE_DECLARE_IRQ_STATE;
   bool run_job;
+  bool run_servo;
 
 #if APP_MODE == APP_MODE_DEMO
   bool run_breath;
@@ -99,6 +157,8 @@ void app_process_action(void)
   if (run_job) {
     --pending_jobs;
   }
+  run_servo = servo_pending;
+  servo_pending = false;
 
 #if APP_MODE == APP_MODE_DEMO
   run_breath = breath_pending;
@@ -120,17 +180,40 @@ void app_process_action(void)
   }
 #endif
 
+  if (run_servo) {
+    /* Move each servo 1 deg toward its target (50 deg/s). */
+    servo_ramp_step();
+  }
+
   if (run_job) {
     uint32_t start = sl_sleeptimer_get_tick_count();
 
-    /* Read the INA228 once per second (polled I2C, a few ms total). Skip if init failed. */
+    /* Test sweep (until Bluetooth sets targets): every SERVO_TEST_PERIOD_S seconds
+     * flip both targets between 0 and 180 deg. The ramp takes ~3.6 s to get there. */
+    if (servo_test_enabled && ++servo_test_seconds >= SERVO_TEST_PERIOD_S) {
+      servo_test_seconds = 0;
+      servo_test_target = (servo_test_target == 180u) ? 0u : 180u;
+      servo_set_target_angle(SERVO_1, servo_test_target);
+      servo_set_target_angle(SERVO_2, servo_test_target);
+      printf("Servo target: %u deg\r\n", (unsigned)servo_test_target);
+    }
+
+    /* Read the INA237 once per second (polled I2C, a few ms total). Skip if init failed. */
     if (ina_rc == I2C_BUS_OK) {
-      ina228_read_bus_mV((float *)&ina_bus_mv);
-      ina228_read_shunt_uV((float *)&ina_shunt_uv);
-      ina228_read_current_mA((float *)&ina_current_ma);
-      ina228_read_power_mW((float *)&ina_power_mw);
-      ina228_read_die_temp_C((float *)&ina_temp_c);
-      ina228_dump_regs();
+      ina237_read_bus_mV((float *)&ina_bus_mv);
+      ina237_read_shunt_uV((float *)&ina_shunt_uv);
+      ina237_read_current_mA((float *)&ina_current_ma);
+      ina237_read_power_mW((float *)&ina_power_mw);
+      ina237_read_die_temp_C((float *)&ina_temp_c);
+      ina237_dump_regs();
+#if APP_LOG_INA
+      /* newlib-nano printf has no %f, so print scaled integers: uA and uW keep small values visible. */
+      printf("INA237: %ld mV  %ld uA  %ld uW  %ld C\r\n",
+             (long)ina_bus_mv,
+             (long)(ina_current_ma * 1000.0f),
+             (long)(ina_power_mw * 1000.0f),
+             (long)ina_temp_c);
+#endif
     }
 
     /* Debug: how long the job took (sleeptimer ticks, 32768/s) and how many have run. */
@@ -151,7 +234,7 @@ bool app_is_ok_to_sleep(void)
     return false;
   }
 #endif
-  return pending_jobs == 0u && !init_failed;
+  return pending_jobs == 0u && !servo_pending && !init_failed;
 #endif
 }
 
@@ -164,6 +247,86 @@ sl_power_manager_on_isr_exit_t app_sleep_on_isr_exit(void)
     return SL_POWER_MANAGER_WAKEUP;
   }
 #endif
-  return pending_jobs != 0u || init_failed
+  return pending_jobs != 0u || servo_pending || init_failed
       ? SL_POWER_MANAGER_WAKEUP : SL_POWER_MANAGER_IGNORE;
+}
+
+/* Start (or restart) connectable advertising, 100 ms interval. */
+static void advertising_start(void)
+{
+  sl_status_t sc;
+  /* Advertising data: flags + the device name from the GATT database ("Sunflower"). */
+  sc = sl_bt_legacy_advertiser_generate_data(advertising_set_handle,
+                                             sl_bt_advertiser_general_discoverable);
+  app_assert_status(sc);
+  sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
+                                     sl_bt_legacy_advertiser_connectable);
+  app_assert_status(sc);
+}
+
+/* Bluetooth stack events. Overrides the SDK's weak default.
+ * NOT an interrupt: the stack calls this from sl_system_process_action() in the main loop. */
+void sl_bt_on_event(sl_bt_msg_t *evt)
+{
+  sl_status_t sc;
+
+  switch (SL_BT_MSG_ID(evt->header)) {
+    /* Radio is ready. Do not call any stack command before this event. */
+    case sl_bt_evt_system_boot_id: {
+      bd_addr address;
+      uint8_t address_type;
+      sc = sl_bt_system_get_identity_address(&address, &address_type);
+      app_assert_status(sc);
+      /* Stored little-endian: print backwards so it matches what a phone shows. */
+      printf("BLE boot, address %02X:%02X:%02X:%02X:%02X:%02X\r\n",
+             address.addr[5], address.addr[4], address.addr[3],
+             address.addr[2], address.addr[1], address.addr[0]);
+
+      sc = sl_bt_advertiser_create_set(&advertising_set_handle);
+      app_assert_status(sc);
+      /* Interval in 0.625 ms units: 160 = 100 ms. Duration/events 0 = forever. */
+      sc = sl_bt_advertiser_set_timing(advertising_set_handle, 160, 160, 0, 0);
+      app_assert_status(sc);
+      advertising_start();
+      printf("BLE advertising as \"Sunflower\"\r\n");
+      break;
+    }
+
+    case sl_bt_evt_connection_opened_id:
+      /* A phone owns the servos now: stop the test sweep. */
+      servo_test_enabled = false;
+      printf("BLE connected (test sweep off)\r\n");
+      break;
+
+    case sl_bt_evt_connection_closed_id:
+      printf("BLE disconnected, reason 0x%04X\r\n",
+             (unsigned)evt->data.evt_connection_closed.reason);
+      /* Advertising stops on connect; restart it so the phone can reconnect. */
+      advertising_start();
+      break;
+
+    /* A phone wrote a characteristic. Servo A/B: 1 byte, 0-180 degrees. */
+    case sl_bt_evt_gatt_server_attribute_value_id: {
+      uint16_t att = evt->data.evt_gatt_server_attribute_value.attribute;
+      uint8_t len = evt->data.evt_gatt_server_attribute_value.value.len;
+      uint8_t angle = evt->data.evt_gatt_server_attribute_value.value.data[0];
+
+      if (len != 1 || angle > 180u) {
+        printf("BLE write ignored: len %u, value %u\r\n", (unsigned)len, (unsigned)angle);
+        break;
+      }
+      /* Only set the target: the 20 ms ramp moves the servo there. */
+      if (att == gattdb_servo_a) {
+        servo_set_target_angle(SERVO_1, angle);
+        printf("BLE Servo A target: %u deg\r\n", (unsigned)angle);
+      } else if (att == gattdb_servo_b) {
+        servo_set_target_angle(SERVO_2, angle);
+        printf("BLE Servo B target: %u deg\r\n", (unsigned)angle);
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
 }

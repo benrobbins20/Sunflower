@@ -1,6 +1,6 @@
 // i2c_bus.h
 // Bare I2C0 master driver (polled). Knows nothing about specific chips.
-// Device drivers (ina228.c, etc.) sit on top of this.
+// Device drivers (ina237.c, etc.) sit on top of this.
 //
 // Pins come from the Pin Tool (config/pin_config.h): I2C_SDA, I2C_SCL
 // Addresses are 7-bit (e.g. 0x41), the driver shifts them for the hardware.

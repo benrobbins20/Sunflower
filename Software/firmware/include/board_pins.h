@@ -5,13 +5,13 @@
 #define BOARD_PINS_H
 #include "em_gpio.h"
 
-/* I2C0 -> INA228 (10k pull-ups to V_OUT on the PCB) */
+/* I2C0 -> INA237 (10k pull-ups to V_OUT on the PCB) */
 #define I2C_SDA_PORT   gpioPortC   /* module pin 28 */
 #define I2C_SDA_PIN    6
 #define I2C_SCL_PORT   gpioPortC   /* module pin 29 */
 #define I2C_SCL_PIN    7
 
-/* INA228 ALERT, open-drain from the INA228, 10k pull-up; input only */
+/* INA237 ALERT, open-drain from the INA237, 10k pull-up; input only */
 #define INA_ALERT_PORT gpioPortB   /* module pin 6 (symbol says "VBAT_OK") */
 #define INA_ALERT_PIN  0
 
