@@ -19,6 +19,8 @@ source:
   - path: src/i2c_bus.c
   - path: src/ina237.c
   - path: src/servo.c
+  - path: src/adc.c
+  - path: src/photo.c
 # Register headers here so generation copies the authored include directory.
 include:
   - path: include
@@ -32,6 +34,8 @@ include:
       - path: ina237.h
       - path: board_pins.h
       - path: servo.h
+      - path: adc.h
+      - path: photo.h
 
 # Sunflower rev2 PCB: bare BGM220P module, no kit board support.
 # The module config supplies clocks/HFXO when no board component is selected.
@@ -44,6 +48,7 @@ component:
   - id: power_manager
   - id: sleeptimer
   - id: emlib_i2c
+  - id: emlib_iadc
   # TIMER1 PWM for the servos (servo.c)
   - id: emlib_timer
   - id: iostream_rtt
