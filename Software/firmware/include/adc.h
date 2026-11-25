@@ -7,6 +7,6 @@
 #define ADC_TIMEOUT  (-1)
 
 void adc_init(void);
-int  adc_read_mV(GPIO_Port_TypeDef port, uint8_t pin, uint32_t *mv);
+int  adc_read_mV(GPIO_Port_TypeDef port, uint8_t pin, /*out*/ uint32_t *mv);
 
 #endif
