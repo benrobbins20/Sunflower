@@ -1,0 +1,19 @@
+{
+  // Setup/doctor writes the resolved uv path into .local/sunflower.code-workspace.
+  "starter.uvPath": "uv",
+  // The firmware helper runs SLC before CMake; opening the folder should not configure it.
+  "cmake.configureOnOpen": false,
+  "cmake.sourceDirectory": "${workspaceFolder}/generated/cmake_gcc",
+  // The last successful build supplies mode-specific flags for authored firmware files.
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/.local/compile_commands.json",
+  // clangd (Silicon Labs profile): use the database firmware.py writes after each build,
+  // and ask the slt Arm GCC for its built-in headers (stdint.h, newlib).
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}/.local",
+    "--query-driver=**/arm-none-eabi-gcc*"
+  ],
+  // The editable SLC project recipe uses YAML syntax.
+  "files.associations": {
+    "*.slcp": "yaml"
+  },
+}

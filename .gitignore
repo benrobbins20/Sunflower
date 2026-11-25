@@ -1,50 +1,22 @@
-# CMake build output
-Software/cmake_gcc/build/
-Software/Binaries/
+# Repo-wide ignores. Software/.gitignore covers the firmware build.
 
-# Compiled firmware artifacts
-*.o
-*.obj
-*.out
-*.elf
-*.bin
-*.hex
-*.s37
-*.map
+# OS junk
+.DS_Store
+Thumbs.db
 
-# Local Silicon Labs SDK
-Software/simplicity_sdk_2026.6.1/
-
-# Local Silicon Labs / IDE state
-Software/.projectlinkstore
-Software/.silabsExtContext
-
-# Generated Silicon Labs metadata
-Software/autogen/.slc_state/
-Software/autogen/sbom/
-Software/autogen/AGENTS-SLAB.md
+# Editor workspaces hold machine paths
+*.code-workspace
 
 # AI agent instructions
 AGENTS.md
-Software/AGENTS.md
 .codex/
 
 # Unused image directories
 image/
-Software/image/
 
 # Altium generated/history files
 Hardware/**/History/
 Hardware/**/__Previews/
 Hardware/**/Project\ Logs\ for\ */
 Hardware/**/*.IntLib
-
-# Altium generated library outputs
 Hardware/PartsLibrary/Project\ Outputs\ for\ */
-
-# OS junk
-.DS_Store
-Thumbs.db
-
-Software/.vscode/
-*.code-workspace

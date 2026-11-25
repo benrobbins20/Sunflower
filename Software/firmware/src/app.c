@@ -2,7 +2,6 @@
 #include "app.h"
 #include "app_config.h"
 #include "workload.h"
-#include "kit_demo.h"
 #include "em_core.h"
 #include "sl_sleeptimer.h"
 #include "sl_status.h"
@@ -92,7 +91,7 @@ void app_init(void)
   sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
 #endif
   /* Add project driver initialization here and check each returned status. */
-  sl_status_t status = kit_demo_init();
+  sl_status_t status = SL_STATUS_OK;
 
   // start INA237 
   i2c_bus_init();

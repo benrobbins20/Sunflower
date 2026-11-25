@@ -1,5 +1,5 @@
 #include "adc.h"
-#include "efr32mg24b220f1536im48.h"
+#include "em_device.h"
 #include "em_cmu.h"
 #include "em_iadc.h"
 

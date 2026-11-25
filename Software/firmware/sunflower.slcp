@@ -15,7 +15,6 @@ source:
   - path: src/main.c
   - path: src/app.c
   - path: src/workload.c
-  - path: src/kit_demo.c
   - path: src/i2c_bus.c
   - path: src/ina237.c
   - path: src/servo.c
@@ -28,8 +27,6 @@ include:
       - path: app.h
       - path: app_config.h
       - path: workload.h
-      - path: kit_demo.h
-      - path: cu_logo.h
       - path: i2c_bus.h
       - path: ina237.h
       - path: board_pins.h
@@ -66,10 +63,6 @@ component:
   - id: gatt_service_device_information_override
   - id: app_assert
   - id: mpu
-  # Named instance generates sl_pwm_led0; its pin is set below (no kit LED on the PCB).
-  - id: pwm
-    instance:
-      - led0
 
 # Our GATT database (services/characteristics) replaces the component's default.
 # Generation turns it into gatt_db.c / gatt_db.h (gattdb_servo_a, gattdb_servo_b).
@@ -80,24 +73,10 @@ config_file:
     path: config/btconf/gatt_configuration.btconf
     directory: btconf
 
-# PWM frequency is Hz. Brightness changes are scheduled separately in app.c.
 configuration:
   # Main stack size for the BLE stack, from bt_soc_empty.
   - name: SL_STACK_SIZE
     value: 2752
-  - name: SL_PWM_LED0_FREQUENCY
-    value: 100
-  # No kit LED on the PCB: route led0 PWM to spare pin PA05 (NC), away from the servo pins.
-  - name: SL_PWM_LED0_PERIPHERAL
-    value: TIMER0
-  - name: SL_PWM_LED0_PERIPHERAL_NO
-    value: 0
-  - name: SL_PWM_LED0_OUTPUT_CHANNEL
-    value: 0
-  - name: SL_PWM_LED0_OUTPUT_PORT
-    value: SL_GPIO_PORT_A
-  - name: SL_PWM_LED0_OUTPUT_PIN
-    value: 5
   # Disable power-manager tracing and EM2 debug retention for power comparisons.
   - name: SL_POWER_MANAGER_DEBUG
     value: 0
